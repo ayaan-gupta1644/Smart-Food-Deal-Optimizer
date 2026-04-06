@@ -1,0 +1,6 @@
+First Command:
+->cd /c/Users/ayaan/OneDrive/Desktop/DSA\ Project/Smart-Food-Deal-Optimizer
+Second Command(optional):
+->make
+Third Command:
+./server
