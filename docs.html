@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>API Docs — MealMax</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+  .docs-body { max-width: 900px; margin: 0 auto; padding: 40px; }
+  .docs-title {
+    font-family: 'Syne', sans-serif; font-size: 2rem; font-weight: 800;
+    margin-bottom: 8px;
+  }
+  .docs-sub { color: var(--muted); font-size: 0.9rem; margin-bottom: 40px; }
+
+  .endpoint-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 14px; padding: 24px; margin-bottom: 20px;
+    animation: fadeUp 0.3s ease both;
+  }
+  .endpoint-card:nth-child(2){animation-delay:.05s}
+  .endpoint-card:nth-child(3){animation-delay:.10s}
+  .endpoint-card:nth-child(4){animation-delay:.15s}
+  .endpoint-card:nth-child(5){animation-delay:.20s}
+
+  .endpoint-route {
+    display: flex; align-items: center; gap: 12px; margin-bottom: 10px;
+  }
+  .method-tag {
+    font-family: 'DM Mono', monospace; font-size: 0.72rem; font-weight: 700;
+    padding: 3px 10px; border-radius: 6px; letter-spacing: 0.05em;
+  }
+  .method-get { background: rgba(6,214,160,0.15); color: var(--green); border: 1px solid rgba(6,214,160,0.3); }
+  .endpoint-path {
+    font-family: 'DM Mono', monospace; font-size: 0.9rem; color: var(--text);
+  }
+  .endpoint-desc { color: var(--muted); font-size: 0.85rem; margin-bottom: 16px; }
+
+  .params-table {
+    width: 100%; border-collapse: collapse; margin-bottom: 14px;
+    font-size: 0.82rem;
+  }
+  .params-table th {
+    font-family: 'DM Mono', monospace; font-size: 0.65rem; letter-spacing: 0.1em;
+    color: var(--muted); text-transform: uppercase; text-align: left;
+    padding: 6px 10px; border-bottom: 1px solid var(--border);
+  }
+  .params-table td { padding: 8px 10px; border-bottom: 1px solid rgba(255,255,255,0.04); }
+  .params-table td:first-child { font-family: 'DM Mono', monospace; color: var(--accent2); }
+
+  .code-block {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 16px; font-family: 'DM Mono', monospace;
+    font-size: 0.78rem; line-height: 1.8; color: var(--muted);
+    overflow-x: auto; margin-top: 8px;
+    position: relative;
+  }
+  .code-block .key { color: var(--blue); }
+  .code-block .str { color: var(--green); }
+  .code-block .num { color: var(--accent); }
+  .code-block .comment { color: #555; font-style: italic; }
+
+  .try-btn {
+    padding: 8px 16px; font-family: 'DM Mono', monospace; font-size: 0.75rem;
+    background: rgba(255,107,53,0.12); color: var(--accent);
+    border: 1px solid rgba(255,107,53,0.3); border-radius: 8px;
+    cursor: pointer; transition: all 0.2s; margin-top: 12px;
+  }
+  .try-btn:hover { background: rgba(255,107,53,0.22); }
+
+  .response-area {
+    margin-top: 10px; display: none;
+    background: var(--surface2); border: 1px solid var(--green);
+    border-radius: 10px; padding: 14px;
+    font-family: 'DM Mono', monospace; font-size: 0.75rem;
+    line-height: 1.7; color: var(--green); overflow-x: auto;
+    max-height: 300px; overflow-y: auto;
+  }
+
+  .dsa-note {
+    background: rgba(76,201,240,0.06); border: 1px solid rgba(76,201,240,0.2);
+    border-radius: 8px; padding: 12px 16px; font-size: 0.8rem;
+    color: var(--blue); margin-top: 10px; font-family: 'DM Mono', monospace;
+  }
+  @keyframes fadeUp {
+    from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="header-left">
+      <a href="index.html" class="logo">Meal<span>Max</span></a>
+      <span class="logo-sub">API Docs</span>
+    </div>
+    <nav class="nav-links">
+      <a href="index.html" class="nav-link">🔍 Optimizer</a>
+      <a href="dsa.html" class="nav-link">🧠 DSA Visualizer</a>
+      <a href="docs.html" class="nav-link active">📄 API Docs</a>
+    </nav>
+    <div class="server-status" id="serverStatus">
+      <span class="status-dot" id="statusDot"></span>
+      <span id="statusText">Connecting...</span>
+    </div>
+  </header>
+
+  <div class="docs-body">
+    <div class="docs-title">C Backend API Reference</div>
+    <div class="docs-sub">HTTP/1.1 server on <code style="color:var(--accent)">localhost:8080</code> · All responses are JSON · CORS enabled</div>
+
+    <!-- ENDPOINT 1 -->
+    <div class="endpoint-card">
+      <div class="endpoint-route">
+        <span class="method-tag method-get">GET</span>
+        <span class="endpoint-path">/api/dishes</span>
+      </div>
+      <div class="endpoint-desc">Lists all dishes in the database. Internally iterates the HashMap key set.</div>
+      <div class="dsa-note">🟠 DSA: HashMap — all inserted keys enumerated · O(n)</div>
+      <div class="code-block">
+<span class="comment">// Sample response</span>
+{
+  <span class="key">"dishes"</span>: [<span class="str">"Butter Chicken"</span>, <span class="str">"Pizza"</span>, <span class="str">"Biryani"</span>, ...],
+  <span class="key">"count"</span>: <span class="num">15</span>
+}
+      </div>
+      <button class="try-btn" onclick="tryEndpoint('dishes', '/api/dishes')">▶ Try it</button>
+      <div class="response-area" id="resp-dishes"></div>
+    </div>
+
+    <!-- ENDPOINT 2 -->
+    <div class="endpoint-card">
+      <div class="endpoint-route">
+        <span class="method-tag method-get">GET</span>
+        <span class="endpoint-path">/api/search?q={prefix}</span>
+      </div>
+      <div class="endpoint-desc">Returns all dish names matching the given prefix. Powered by the Trie data structure implemented in C.</div>
+      <table class="params-table">
+        <thead><tr><th>Param</th><th>Type</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td>q</td><td>string</td><td>Prefix to search (e.g. "but", "bi")</td></tr>
+        </tbody>
+      </table>
+      <div class="dsa-note">🔵 DSA: Trie — traverses prefix in O(m), DFS collects results · O(m + k)</div>
+      <div class="code-block">
+<span class="comment">// GET /api/search?q=bi</span>
+{
+  <span class="key">"algo"</span>: <span class="str">"Trie"</span>,
+  <span class="key">"complexity"</span>: <span class="str">"O(m) where m=2"</span>,
+  <span class="key">"prefix"</span>: <span class="str">"bi"</span>,
+  <span class="key">"count"</span>: <span class="num">1</span>,
+  <span class="key">"results"</span>: [<span class="str">"Biryani"</span>]
+}
+      </div>
+      <button class="try-btn" onclick="tryEndpoint('search', '/api/search?q=bi')">▶ Try with q=bi</button>
+      <div class="response-area" id="resp-search"></div>
+    </div>
+
+    <!-- ENDPOINT 3 -->
+    <div class="endpoint-card">
+      <div class="endpoint-route">
+        <span class="method-tag method-get">GET</span>
+        <span class="endpoint-path">/api/prices?dish={name}</span>
+      </div>
+      <div class="endpoint-desc">Fetches prices for a dish across all 3 platforms. Uses HashMap for O(1) lookup by dish name.</div>
+      <table class="params-table">
+        <thead><tr><th>Param</th><th>Type</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td>dish</td><td>string</td><td>Exact dish name (case-insensitive)</td></tr>
+        </tbody>
+      </table>
+      <div class="dsa-note">🟠 DSA: HashMap — djb2 hash → bucket index → chain traversal · O(1) avg</div>
+      <div class="code-block">
+<span class="comment">// GET /api/prices?dish=Biryani</span>
+{
+  <span class="key">"algo"</span>: <span class="str">"HashMap"</span>,
+  <span class="key">"complexity"</span>: <span class="str">"O(1)"</span>,
+  <span class="key">"hash_bucket"</span>: <span class="num">42</span>,
+  <span class="key">"dish"</span>: <span class="str">"Biryani"</span>,
+  <span class="key">"platforms"</span>: [
+    { <span class="key">"platform"</span>: <span class="str">"Swiggy"</span>, <span class="key">"base"</span>: <span class="num">220</span>, <span class="key">"delivery"</span>: <span class="num">25</span>, <span class="key">"tax"</span>: <span class="num">11</span>, <span class="key">"total"</span>: <span class="num">256</span> },
+    ...
+  ]
+}
+      </div>
+      <button class="try-btn" onclick="tryEndpoint('prices', '/api/prices?dish=Biryani')">▶ Try with Biryani</button>
+      <div class="response-area" id="resp-prices"></div>
+    </div>
+
+    <!-- ENDPOINT 4 -->
+    <div class="endpoint-card">
+      <div class="endpoint-route">
+        <span class="method-tag method-get">GET</span>
+        <span class="endpoint-path">/api/coupons?dish={name}&platform={platform}</span>
+      </div>
+      <div class="endpoint-desc">Returns all coupons applicable for a dish on a specific platform, with savings pre-calculated.</div>
+      <table class="params-table">
+        <thead><tr><th>Param</th><th>Type</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td>dish</td><td>string</td><td>Dish name</td></tr>
+          <tr><td>platform</td><td>string</td><td>Swiggy | Zomato | Magicpin</td></tr>
+        </tbody>
+      </table>
+      <div class="dsa-note">🟢 DSA: Greedy pre-analysis — filters by platform + min_order · O(n)</div>
+      <button class="try-btn" onclick="tryEndpoint('coupons', '/api/coupons?dish=Pizza&platform=Swiggy')">▶ Try: Pizza on Swiggy</button>
+      <div class="response-area" id="resp-coupons"></div>
+    </div>
+
+    <!-- ENDPOINT 5 -->
+    <div class="endpoint-card">
+      <div class="endpoint-route">
+        <span class="method-tag method-get">GET</span>
+        <span class="endpoint-path">/api/optimize?dish={name}</span>
+      </div>
+      <div class="endpoint-desc">The main endpoint — runs all 5 DSA algorithms and returns optimal deal with full algorithm trace.</div>
+      <div class="dsa-note">
+        🟠 HashMap O(1) → 🔵 Trie O(m) → 🟢 Greedy O(n) → 🟡 DP Knapsack O(n×W) → 🟣 Min-Heap O(n log n)
+      </div>
+      <div class="code-block">
+<span class="comment">// GET /api/optimize?dish=Pizza</span>
+{
+  <span class="key">"dish"</span>: <span class="str">"Pizza"</span>,
+  <span class="key">"algo_trace"</span>: {
+    <span class="key">"hashmap"</span>:    { <span class="key">"complexity"</span>: <span class="str">"O(1)"</span>, <span class="key">"bucket"</span>: <span class="num">77</span> },
+    <span class="key">"trie"</span>:       { <span class="key">"complexity"</span>: <span class="str">"O(m)"</span> },
+    <span class="key">"greedy"</span>:     { <span class="key">"complexity"</span>: <span class="str">"O(n)"</span>, <span class="key">"log"</span>: [...] },
+    <span class="key">"dp_knapsack"</span>:{ <span class="key">"complexity"</span>: <span class="str">"O(n*W) n=6 W=200"</span>, <span class="key">"log"</span>: [...] },
+    <span class="key">"min_heap"</span>:   { <span class="key">"complexity"</span>: <span class="str">"O(n log n)"</span>, <span class="key">"size"</span>: <span class="num">3</span> }
+  },
+  <span class="key">"rankings"</span>: [
+    { <span class="key">"rank"</span>: <span class="num">1</span>, <span class="key">"platform"</span>: <span class="str">"Zomato"</span>, <span class="key">"final_price"</span>: <span class="num">245</span>, <span class="key">"saving"</span>: <span class="num">100</span>, <span class="key">"coupons_used"</span>: <span class="str">"FIRST100"</span> },
+    ...
+  ]
+}
+      </div>
+      <button class="try-btn" onclick="tryEndpoint('optimize', '/api/optimize?dish=Pizza')">▶ Try with Pizza</button>
+      <div class="response-area" id="resp-optimize"></div>
+    </div>
+
+  </div>
+
+  <footer>
+    <div class="footer-algos">
+      <span class="fa-chip hashmap">HashMap</span>
+      <span class="fa-chip trie">Trie</span>
+      <span class="fa-chip greedy">Greedy</span>
+      <span class="fa-chip dp">DP Knapsack</span>
+      <span class="fa-chip heap">Min-Heap</span>
+    </div>
+    <div class="footer-note">C Backend on <code>localhost:8080</code> · DSA Project</div>
+  </footer>
+</div>
+
+<div class="toast" id="toast"><span id="toastMsg"></span></div>
+<script src="app.js"></script>
+<script>
+async function tryEndpoint(id, path) {
+  const el = document.getElementById(`resp-${id}`);
+  el.style.display = 'block';
+  el.textContent = 'Loading...';
+  try {
+    const r = await fetch(`http://localhost:8080${path}`);
+    const d = await r.json();
+    el.textContent = JSON.stringify(d, null, 2);
+  } catch(e) {
+    el.textContent = '❌ Cannot reach C backend.\nMake sure server is running:\n\n  cd backend && ./server';
+    el.style.color = 'var(--accent)';
+  }
+}
+</script>
+</body>
+</html>
