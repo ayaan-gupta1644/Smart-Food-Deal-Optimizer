@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DSA Visualizer — MealMax</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+  .viz-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    padding: 32px 40px;
+  }
+  @media(max-width:900px){.viz-grid{grid-template-columns:1fr;padding:20px}}
+
+  .viz-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    animation: fadeUp 0.4s ease both;
+  }
+  .viz-card:nth-child(2){animation-delay:.1s}
+  .viz-card:nth-child(3){animation-delay:.2s}
+  .viz-card:nth-child(4){animation-delay:.3s}
+  .viz-card:nth-child(5){animation-delay:.4s; grid-column: 1 / -1}
+
+  .viz-card-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 6px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .viz-card-complexity {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--muted);
+    margin-bottom: 16px;
+  }
+
+  /* TRIE VIZ */
+  .trie-input-wrap { display: flex; gap: 8px; margin-bottom: 12px; }
+  .trie-input {
+    flex: 1; background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px 14px; color: var(--text);
+    font-family: 'DM Mono', monospace; font-size: 0.85rem; outline: none;
+  }
+  .trie-input:focus { border-color: var(--blue); }
+  .trie-btn {
+    padding: 10px 16px; background: rgba(76,201,240,0.15);
+    color: var(--blue); border: 1px solid var(--blue);
+    border-radius: 8px; cursor: pointer; font-family: 'DM Mono', monospace;
+    font-size: 0.8rem;
+  }
+  .trie-results {
+    display: flex; flex-wrap: wrap; gap: 8px; min-height: 36px;
+  }
+  .trie-result-chip {
+    background: rgba(76,201,240,0.1); border: 1px solid rgba(76,201,240,0.3);
+    color: var(--blue); padding: 4px 12px; border-radius: 20px;
+    font-family: 'DM Mono', monospace; font-size: 0.78rem;
+    animation: fadeUp 0.2s ease;
+  }
+  .trie-match { color: var(--accent); font-weight: 600; }
+  .trie-path {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--muted);
+    margin-top: 8px;
+    line-height: 1.8;
+  }
+
+  /* HASHMAP VIZ */
+  .hm-input-wrap { display: flex; gap: 8px; margin-bottom: 12px; }
+  .hm-select {
+    flex: 1; background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px 14px; color: var(--text);
+    font-family: 'DM Mono', monospace; font-size: 0.82rem; outline: none;
+  }
+  .hm-btn {
+    padding: 10px 16px; background: rgba(255,107,53,0.15);
+    color: var(--accent); border: 1px solid var(--accent);
+    border-radius: 8px; cursor: pointer; font-family: 'DM Mono', monospace;
+    font-size: 0.8rem;
+  }
+  .hm-result {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.8rem;
+    line-height: 2;
+    color: var(--muted);
+  }
+  .hm-result .hm-key { color: var(--accent); }
+  .hm-result .hm-val { color: var(--green); }
+
+  /* GREEDY VIZ */
+  .greedy-bars { display: flex; flex-direction: column; gap: 10px; }
+  .greedy-bar-row {
+    display: grid; grid-template-columns: 100px 1fr 60px;
+    align-items: center; gap: 10px;
+  }
+  .greedy-label { font-family: 'DM Mono', monospace; font-size: 0.75rem; color: var(--muted); }
+  .bar-track {
+    background: var(--surface2); border-radius: 4px; height: 20px;
+    overflow: hidden; border: 1px solid var(--border);
+  }
+  .bar-fill {
+    height: 100%; border-radius: 4px;
+    transition: width 0.6s ease;
+    display: flex; align-items: center; padding-left: 8px;
+    font-family: 'DM Mono', monospace; font-size: 0.65rem; color: #fff;
+  }
+  .bar-val { font-family: 'DM Mono', monospace; font-size: 0.75rem; color: var(--green); }
+  .greedy-winner { font-family: 'DM Mono', monospace; font-size: 0.78rem; color: var(--green); margin-top: 12px; }
+
+  /* HEAP VIZ */
+  .heap-tree {
+    display: flex; flex-direction: column; align-items: center; gap: 14px;
+    padding: 10px 0;
+  }
+  .heap-level { display: flex; justify-content: center; gap: 24px; }
+  .heap-node {
+    width: 80px; height: 52px;
+    border-radius: 10px;
+    border: 2px solid var(--border);
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center;
+    font-family: 'DM Mono', monospace; font-size: 0.72rem;
+    transition: all 0.4s ease;
+    position: relative;
+    background: var(--surface2);
+  }
+  .heap-node.root {
+    border-color: var(--green);
+    background: rgba(6,214,160,0.1);
+  }
+  .heap-node-plat { font-size: 0.65rem; color: var(--muted); }
+  .heap-node-price { font-weight: 600; color: var(--text); }
+  .heap-connector {
+    width: 1px; height: 14px; background: var(--border);
+    margin: 0 auto;
+  }
+  .heap-note {
+    font-family: 'DM Mono', monospace; font-size: 0.72rem;
+    color: var(--muted); text-align: center; margin-top: 10px;
+  }
+
+  /* DP TABLE */
+  .dp-table-wrap { overflow-x: auto; }
+  .dp-table {
+    border-collapse: collapse; width: 100%;
+    font-family: 'DM Mono', monospace; font-size: 0.72rem;
+  }
+  .dp-table th {
+    background: var(--surface2); padding: 8px 10px;
+    border: 1px solid var(--border); color: var(--muted);
+    text-align: center;
+  }
+  .dp-table td {
+    padding: 7px 10px; border: 1px solid var(--border);
+    text-align: center; color: var(--text);
+    transition: background 0.3s;
+  }
+  .dp-table td.active { background: rgba(255,209,102,0.15); color: var(--accent2); }
+  .dp-table td.best { background: rgba(6,214,160,0.2); color: var(--green); font-weight: 700; }
+  .dp-controls { display: flex; gap: 8px; margin-bottom: 14px; align-items: center; }
+  .dp-select {
+    flex:1; background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 9px 12px; color: var(--text);
+    font-family: 'DM Mono', monospace; font-size: 0.8rem; outline: none;
+  }
+  .dp-btn {
+    padding: 9px 14px; background: rgba(255,209,102,0.15);
+    color: var(--accent2); border: 1px solid var(--accent2);
+    border-radius: 8px; cursor: pointer; font-family: 'DM Mono', monospace;
+    font-size: 0.78rem;
+  }
+  @keyframes fadeUp {
+    from { opacity:0; transform: translateY(16px) }
+    to { opacity:1; transform: translateY(0) }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header>
+    <div class="header-left">
+      <a href="index.html" class="logo">Meal<span>Max</span></a>
+      <span class="logo-sub">DSA Visualizer</span>
+    </div>
+    <nav class="nav-links">
+      <a href="index.html" class="nav-link">🔍 Optimizer</a>
+      <a href="dsa.html" class="nav-link active">🧠 DSA Visualizer</a>
+      <a href="docs.html" class="nav-link">📄 API Docs</a>
+    </nav>
+    <div class="server-status" id="serverStatus">
+      <span class="status-dot" id="statusDot"></span>
+      <span id="statusText">Connecting...</span>
+    </div>
+  </header>
+
+  <div class="viz-grid">
+
+    <!-- 1. TRIE -->
+    <div class="viz-card">
+      <div class="viz-card-title">
+        <span class="algo-chip trie" style="font-size:0.65rem">Trie</span>
+        Prefix Tree Autocomplete
+      </div>
+      <div class="viz-card-complexity">Insert: O(m) · Search: O(m + k) · m=prefix len, k=results</div>
+      <div class="trie-input-wrap">
+        <input type="text" class="trie-input" id="trieInput" placeholder="Type prefix e.g. 'pa'">
+        <button class="trie-btn" onclick="vizTrie()">Search</button>
+      </div>
+      <div class="trie-results" id="trieResults">
+        <span style="font-size:0.8rem;color:var(--muted)">Results appear here…</span>
+      </div>
+      <div class="trie-path" id="triePath"></div>
+    </div>
+
+    <!-- 2. HASHMAP -->
+    <div class="viz-card">
+      <div class="viz-card-title">
+        <span class="algo-chip hashmap" style="font-size:0.65rem">HashMap</span>
+        Hash Bucket Lookup
+      </div>
+      <div class="viz-card-complexity">Insert: O(1) avg · Lookup: O(1) avg · Hash: djb2 mod 128</div>
+      <div class="hm-input-wrap">
+        <select class="hm-select" id="hmSelect">
+          <option value="">— select a dish —</option>
+          <option>Biryani</option><option>Pizza</option>
+          <option>Burger</option><option>Butter Chicken</option>
+          <option>Dosa</option><option>Paneer Tikka</option>
+          <option>Noodles</option><option>Pasta</option>
+        </select>
+        <button class="hm-btn" onclick="vizHashmap()">Lookup</button>
+      </div>
+      <div class="hm-result" id="hmResult">
+        <span style="color:var(--muted)">Select a dish to see bucket info…</span>
+      </div>
+    </div>
+
+    <!-- 3. GREEDY -->
+    <div class="viz-card">
+      <div class="viz-card-title">
+        <span class="algo-chip greedy" style="font-size:0.65rem">Greedy</span>
+        Best Coupon Selection
+      </div>
+      <div class="viz-card-complexity">O(n) — scans all coupons once, picks local maximum saving</div>
+      <div class="greedy-bars" id="greedyBars">
+        <span style="font-size:0.8rem;color:var(--muted)">Loads when you run optimizer on main page…</span>
+      </div>
+      <div class="greedy-winner" id="greedyWinner"></div>
+    </div>
+
+    <!-- 4. MIN-HEAP -->
+    <div class="viz-card">
+      <div class="viz-card-title">
+        <span class="algo-chip heap" style="font-size:0.65rem">Min-Heap</span>
+        Priority Queue Tree
+      </div>
+      <div class="viz-card-complexity">Insert: O(log n) · Extract-Min: O(log n) · Heapify: O(n)</div>
+      <div class="heap-tree" id="heapTree">
+        <div style="font-size:0.8rem;color:var(--muted);text-align:center">
+          Run optimizer to populate heap…
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. DP KNAPSACK TABLE -->
+    <div class="viz-card">
+      <div class="viz-card-title">
+        <span class="algo-chip dp" style="font-size:0.65rem">DP Knapsack</span>
+        0/1 Knapsack Table (Coupon Optimization)
+      </div>
+      <div class="viz-card-complexity">Time: O(n×W) · Space: O(n×W) · n=coupons, W=capacity(200)</div>
+      <div class="dp-controls">
+        <select class="dp-select" id="dpDish">
+          <option value="">— pick a dish —</option>
+          <option>Biryani</option><option>Pizza</option>
+          <option>Butter Chicken</option><option>Burger</option>
+          <option>Dosa</option>
+        </select>
+        <select class="dp-select" id="dpPlatform" style="max-width:130px">
+          <option>Swiggy</option><option>Zomato</option><option>Magicpin</option>
+        </select>
+        <button class="dp-btn" onclick="vizDP()">Build Table</button>
+      </div>
+      <div class="dp-table-wrap" id="dpTableWrap">
+        <p style="font-size:0.8rem;color:var(--muted)">Select dish & platform, then click Build Table</p>
+      </div>
+    </div>
+
+  </div>
+
+  <footer>
+    <div class="footer-algos">
+      <span class="fa-chip hashmap">HashMap</span>
+      <span class="fa-chip trie">Trie</span>
+      <span class="fa-chip greedy">Greedy</span>
+      <span class="fa-chip dp">DP Knapsack</span>
+      <span class="fa-chip heap">Min-Heap</span>
+    </div>
+    <div class="footer-note">C Backend on <code>localhost:8080</code> · DSA Project</div>
+  </footer>
+</div>
+
+<div class="toast" id="toast"><span id="toastMsg"></span></div>
+<script src="app.js"></script>
+<script>
+const API = 'http://localhost:8080';
+
+async function vizTrie() {
+  const prefix = document.getElementById('trieInput').value.trim();
+  if (!prefix) return;
+  try {
+    const r = await fetch(`${API}/api/search?q=${encodeURIComponent(prefix)}`);
+    const d = await r.json();
+    const el = document.getElementById('trieResults');
+    el.innerHTML = d.results.map(w => {
+      const idx = w.toLowerCase().indexOf(prefix.toLowerCase());
+      const hi = idx >= 0
+        ? w.slice(0,idx) + `<span class="trie-match">${w.slice(idx,idx+prefix.length)}</span>` + w.slice(idx+prefix.length)
+        : w;
+      return `<span class="trie-result-chip">${hi}</span>`;
+    }).join('') || `<span style="color:var(--muted)">No matches for "${prefix}"</span>`;
+
+    document.getElementById('triePath').innerHTML =
+      `<b>Algo:</b> ${d.algo} &nbsp;|&nbsp; <b>Complexity:</b> ${d.complexity} &nbsp;|&nbsp; <b>Found:</b> ${d.count} result(s)`;
+  } catch(e) { showToast('Cannot reach C backend — is server running?'); }
+}
+document.getElementById('trieInput').addEventListener('keydown', e => { if(e.key==='Enter') vizTrie(); });
+
+async function vizHashmap() {
+  const dish = document.getElementById('hmSelect').value;
+  if (!dish) return;
+  try {
+    const r = await fetch(`${API}/api/prices?dish=${encodeURIComponent(dish)}`);
+    const d = await r.json();
+    if (d.error) { document.getElementById('hmResult').textContent = d.error; return; }
+    document.getElementById('hmResult').innerHTML = `
+      <span class="hm-key">key</span>   = "<span class="hm-val">${d.dish}</span>"<br>
+      <span class="hm-key">hash</span>  = djb2("${d.dish}") mod 128 = <span class="hm-val">${d.hash_bucket}</span><br>
+      <span class="hm-key">algo</span>  = <span class="hm-val">${d.algo}</span> · ${d.complexity}<br>
+      <br>
+      ${d.platforms.map(p =>
+        `<span class="hm-key">${p.platform}</span> → base=<span class="hm-val">₹${p.base}</span> del=<span class="hm-val">₹${p.delivery}</span> tax=<span class="hm-val">₹${p.tax.toFixed(0)}</span> <b>total=<span style="color:var(--accent)">₹${p.total.toFixed(0)}</span></b>`
+      ).join('<br>')}
+    `;
+  } catch(e) { showToast('Cannot reach C backend'); }
+}
+
+function showGreedyBars(data) {
+  if (!data || !data.algo_trace) return;
+  const log = data.algo_trace.greedy.log;
+  const maxSave = Math.max(...log.map(l => l.greedy_saving), 1);
+  const colors = { Swiggy: '#fc8019', Zomato: '#e23744', Magicpin: '#7c3aed' };
+  document.getElementById('greedyBars').innerHTML = log.map(l => `
+    <div class="greedy-bar-row">
+      <span class="greedy-label">${l.platform}</span>
+      <div class="bar-track">
+        <div class="bar-fill" style="width:${(l.greedy_saving/maxSave*100).toFixed(0)}%;background:${colors[l.platform]}">
+          ${l.coupon !== 'none' ? l.coupon : ''}
+        </div>
+      </div>
+      <span class="bar-val">${l.greedy_saving > 0 ? '-₹'+l.greedy_saving.toFixed(0) : 'none'}</span>
+    </div>
+  `).join('');
+  const best = log.reduce((a,b) => a.greedy_saving > b.greedy_saving ? a : b);
+  document.getElementById('greedyWinner').textContent =
+    `✅ Greedy picks: ${best.coupon} on ${best.platform} (saves ₹${best.greedy_saving.toFixed(0)}) — O(n) single pass`;
+}
+
+function showHeapTree(data) {
+  if (!data || !data.rankings) return;
+  const ranks = data.rankings;
+  const colors = { Swiggy: '#fc8019', Zomato: '#e23744', Magicpin: '#7c3aed' };
+  const heapEl = document.getElementById('heapTree');
+
+  // For 3 items: root=0, left=1, right=2
+  // Visual: level 0 (root), level 1 (children)
+  heapEl.innerHTML = '';
+
+  const l0 = document.createElement('div'); l0.className = 'heap-level';
+  const root = document.createElement('div');
+  root.className = 'heap-node root';
+  root.style.borderColor = colors[ranks[0].platform] || 'var(--green)';
+  root.innerHTML = `<span class="heap-node-plat">${ranks[0].platform}</span>
+    <span class="heap-node-price">₹${ranks[0].final_price.toFixed(0)}</span>`;
+  l0.appendChild(root);
+  heapEl.appendChild(l0);
+
+  if (ranks.length > 1) {
+    const conn = document.createElement('div'); conn.className = 'heap-connector';
+    heapEl.appendChild(conn);
+    const l1 = document.createElement('div'); l1.className = 'heap-level';
+    for (let i = 1; i < ranks.length; i++) {
+      const n = document.createElement('div'); n.className = 'heap-node';
+      n.style.borderColor = colors[ranks[i].platform] || 'var(--border)';
+      n.innerHTML = `<span class="heap-node-plat">${ranks[i].platform}</span>
+        <span class="heap-node-price">₹${ranks[i].final_price.toFixed(0)}</span>`;
+      l1.appendChild(n);
+    }
+    heapEl.appendChild(l1);
+  }
+
+  const note = document.createElement('div'); note.className = 'heap-note';
+  note.textContent = `Root = min = ${ranks[0].platform} @ ₹${ranks[0].final_price.toFixed(0)} · extracted in O(log ${ranks.length})`;
+  heapEl.appendChild(note);
+}
+
+// Listen for data from main page via localStorage
+window.addEventListener('storage', e => {
+  if (e.key === 'mealmax_last_result') {
+    try {
+      const d = JSON.parse(e.newValue);
+      showGreedyBars(d);
+      showHeapTree(d);
+    } catch(ex) {}
+  }
+});
+
+// Load cached result
+try {
+  const cached = localStorage.getItem('mealmax_last_result');
+  if (cached) { const d = JSON.parse(cached); showGreedyBars(d); showHeapTree(d); }
+} catch(ex) {}
+
+async function vizDP() {
+  const dish = document.getElementById('dpDish').value;
+  const platform = document.getElementById('dpPlatform').value;
+  if (!dish) return;
+
+  // Get coupons
+  try {
+    const [pr, cr] = await Promise.all([
+      fetch(`${API}/api/prices?dish=${encodeURIComponent(dish)}`).then(r=>r.json()),
+      fetch(`${API}/api/coupons?dish=${encodeURIComponent(dish)}&platform=${encodeURIComponent(platform)}`).then(r=>r.json())
+    ]);
+
+    const pdata = pr.platforms.find(p => p.platform === platform);
+    if (!pdata) return;
+    const total = pdata.total;
+
+    const coupons = cr.coupons || [];
+    if (coupons.length === 0) {
+      document.getElementById('dpTableWrap').innerHTML = `<p style="color:var(--muted);font-size:0.8rem">No applicable coupons for ${dish} on ${platform}</p>`;
+      return;
+    }
+
+    // Build DP table (simplified: W from 0 to max_weight, step 10)
+    const W = Math.max(...coupons.map(c => c.weight));
+    const steps = 8; // show W=0,10,20,...
+    const wCols = Array.from({length: steps+1}, (_,i) => Math.round(i * W / steps));
+
+    let n = coupons.length;
+    // full dp
+    const dp = Array.from({length:n+1}, ()=>Array(W+1).fill(0));
+    for (let i = 1; i <= n; i++) {
+      const c = coupons[i-1];
+      for (let w = 0; w <= W; w++) {
+        dp[i][w] = dp[i-1][w];
+        if (c.weight <= w && dp[i-1][w-c.weight] + c.saving > dp[i][w])
+          dp[i][w] = dp[i-1][w-c.weight] + c.saving;
+      }
+    }
+
+    // Build table HTML
+    let html = `<p style="font-size:0.75rem;color:var(--muted);margin-bottom:10px">
+      Dish: <b>${dish}</b> · Platform: <b>${platform}</b> · Subtotal: <b>₹${total.toFixed(0)}</b> · Coupons: <b>${n}</b>
+    </p>`;
+    html += '<table class="dp-table"><thead><tr><th>i \\ w</th>';
+    wCols.forEach(w => html += `<th>${w}</th>`);
+    html += '</tr></thead><tbody>';
+    html += `<tr><th>0 (none)</th>${wCols.map(w=>`<td>0</td>`).join('')}</tr>`;
+    for (let i = 1; i <= n; i++) {
+      html += `<tr><th>${i}: ${coupons[i-1].code}</th>`;
+      wCols.forEach(w => {
+        const val = dp[i][w].toFixed(0);
+        const prev = dp[i-1][w].toFixed(0);
+        const isMax = w === W && i === n;
+        const changed = val !== prev;
+        html += `<td class="${isMax?'best':changed?'active':''}">${val>0?'₹'+val:0}</td>`;
+      });
+      html += '</tr>';
+    }
+    html += '</tbody></table>';
+    html += `<p style="font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--green);margin-top:10px">
+      ✅ Max saving = ₹${dp[n][W].toFixed(0)} &nbsp;·&nbsp; dp[${n}][${W}] &nbsp;·&nbsp; Time O(${n}×${W})</p>`;
+
+    document.getElementById('dpTableWrap').innerHTML = html;
+  } catch(e) { showToast('Cannot reach C backend'); }
+}
+</script>
+</body>
+</html>
