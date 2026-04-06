@@ -21,7 +21,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <sys/socket.h>
+#include <winsock2.h>
+#include <ws2tcpip.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <ctype.h>
