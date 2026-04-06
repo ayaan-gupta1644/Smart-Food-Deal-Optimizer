@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MealMax — Smart Food Deal Optimizer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app">
+
+  <!-- HEADER -->
+  <header>
+    <div class="header-left">
+      <a href="index.html" class="logo">Meal<span>Max</span></a>
+      <span class="logo-sub">Smart Food Deal Optimizer</span>
+    </div>
+    <nav class="nav-links">
+      <a href="index.html" class="nav-link active">🔍 Optimizer</a>
+      <a href="dsa.html" class="nav-link">🧠 DSA Visualizer</a>
+      <a href="docs.html" class="nav-link">📄 API Docs</a>
+    </nav>
+    <div class="server-status" id="serverStatus">
+      <span class="status-dot" id="statusDot"></span>
+      <span id="statusText">Connecting...</span>
+    </div>
+  </header>
+
+  <main>
+    <!-- LEFT: SEARCH + INPUT -->
+    <section class="panel-left">
+
+      <div class="hero-block">
+        <h1>Find the <em>cheapest</em><br>food deal 🎯</h1>
+        <p class="hero-sub">C backend runs HashMap · Trie · Greedy · DP · Heap to find your best price</p>
+      </div>
+
+      <!-- SEARCH -->
+      <div class="search-block">
+        <div class="input-wrap">
+          <span class="input-icon">🔍</span>
+          <input type="text" id="searchInput" class="search-input"
+                 placeholder="Type a dish — e.g. Biryani, Pizza..."
+                 autocomplete="off">
+          <span class="input-clear" id="clearBtn" onclick="clearSearch()">✕</span>
+        </div>
+        <div class="autocomplete-box" id="autocomplete"></div>
+        <div class="algo-tag" id="trieTag" style="display:none">
+          ⬆ <strong>Trie</strong> autocomplete — C backend · O(m) prefix search
+        </div>
+      </div>
+
+      <!-- PLATFORM CARDS -->
+      <div class="section-label">
+        Platform Prices
+        <span class="algo-chip hashmap">HashMap O(1)</span>
+      </div>
+      <div class="platforms-row" id="platformsRow">
+        <div class="platform-card swiggy" data-platform="Swiggy" onclick="selectPlatform('Swiggy')">
+          <div class="plat-crown" id="crownSwiggy">👑</div>
+          <div class="plat-header">
+            <span class="plat-dot" style="background:#fc8019"></span>
+            <span class="plat-name">Swiggy</span>
+          </div>
+          <div class="plat-price" id="priceSwiggy">—</div>
+          <div class="plat-detail" id="detailSwiggy">Search a dish</div>
+        </div>
+        <div class="platform-card zomato" data-platform="Zomato" onclick="selectPlatform('Zomato')">
+          <div class="plat-crown" id="crownZomato" style="display:none">👑</div>
+          <div class="plat-header">
+            <span class="plat-dot" style="background:#e23744"></span>
+            <span class="plat-name">Zomato</span>
+          </div>
+          <div class="plat-price" id="priceZomato">—</div>
+          <div class="plat-detail" id="detailZomato">Search a dish</div>
+        </div>
+        <div class="platform-card magicpin" data-platform="Magicpin" onclick="selectPlatform('Magicpin')">
+          <div class="plat-crown" id="crownMagicpin" style="display:none">👑</div>
+          <div class="plat-header">
+            <span class="plat-dot" style="background:#7c3aed"></span>
+            <span class="plat-name">Magicpin</span>
+          </div>
+          <div class="plat-price" id="priceMagicpin">—</div>
+          <div class="plat-detail" id="detailMagicpin">Search a dish</div>
+        </div>
+      </div>
+
+      <!-- COUPONS -->
+      <div class="section-label" style="margin-top:28px">
+        Applicable Coupons
+        <span class="algo-chip greedy">Greedy + DP</span>
+      </div>
+      <div id="couponsArea">
+        <p class="muted-hint">Search a dish to load coupons…</p>
+      </div>
+
+      <!-- OPTIMIZE BTN -->
+      <button class="optimize-btn" id="optimizeBtn" onclick="runOptimize()">
+        <span>🚀 Find Best Deal</span>
+        <span class="btn-sub">Runs all 5 DSA algorithms</span>
+      </button>
+
+    </section>
+
+    <!-- RIGHT: RESULTS -->
+    <section class="panel-right">
+
+      <div class="section-label">Results</div>
+
+      <!-- EMPTY -->
+      <div class="empty-state" id="emptyState">
+        <div class="empty-icon">🍽️</div>
+        <div class="empty-title">No results yet</div>
+        <div class="empty-hint">Search a dish and click<br><strong>Find Best Deal</strong></div>
+      </div>
+
+      <!-- RESULTS -->
+      <div id="resultsArea" style="display:none">
+
+        <!-- WINNER CARD -->
+        <div class="winner-card" id="winnerCard">
+          <div class="winner-label">✅ Optimal Deal</div>
+          <div class="winner-platform" id="winnerPlatform">—</div>
+          <div class="winner-price" id="winnerPrice">—</div>
+          <div class="winner-coupon" id="winnerCoupon">—</div>
+          <div class="winner-save" id="winnerSave">—</div>
+        </div>
+
+        <!-- BREAKDOWN -->
+        <div class="result-card">
+          <div class="card-title">💰 Cost Breakdown</div>
+          <div class="breakdown-grid" id="breakdownGrid"></div>
+        </div>
+
+        <!-- HEAP RANKINGS -->
+        <div class="result-card">
+          <div class="card-title">
+            📊 Min-Heap Rankings
+            <span class="algo-chip heap" style="font-size:0.6rem">O(n log n)</span>
+          </div>
+          <div id="heapList"></div>
+        </div>
+
+        <!-- ALGO TRACE -->
+        <div class="result-card">
+          <div class="card-title">⚙️ Algorithm Trace (from C backend)</div>
+          <div id="algoTrace"></div>
+        </div>
+
+      </div>
+
+    </section>
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-algos">
+      <span class="fa-chip hashmap">HashMap</span>
+      <span class="fa-chip trie">Trie</span>
+      <span class="fa-chip greedy">Greedy</span>
+      <span class="fa-chip dp">DP Knapsack</span>
+      <span class="fa-chip heap">Min-Heap</span>
+    </div>
+    <div class="footer-note">C Backend on <code>localhost:8080</code> · DSA Project</div>
+  </footer>
+
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"><span id="toastMsg"></span></div>
+
+<script src="app.js"></script>
+</body>
+</html>
